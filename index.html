@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>משחק זיכרון</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+    #game {
+      display: grid;
+      grid-template-columns: repeat(5, 100px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      background-color: #3498db;
+      color: white;
+      font-size: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+    .flipped, .matched {
+      background-color: #2ecc71;
+      cursor: default;
+    }
+    #timer, #wins {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>משחק זיכרון - אותיות בעברית</h1>
+  <div id="timer">זמן: 60</div>
+  <div id="wins">ניצחונות: 0</div>
+  <div id="game"></div>
+
+  <script>
+    const hebrewLetters = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י'];
+    let cards = [...hebrewLetters, ...hebrewLetters].sort(() => Math.random() - 0.5);
+    const game = document.getElementById('game');
+    const timerDisplay = document.getElementById('timer');
+    const winsDisplay = document.getElementById('wins');
+    let flipped = [];
+    let matched = 0;
+    let wins = 0;
+    let timeLeft = 60;
+    let timer;
+
+    function createBoard() {
+      game.innerHTML = '';
+      cards.forEach((letter, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.letter = letter;
+        card.dataset.index = index;
+        card.addEventListener('click', flipCard);
+        game.appendChild(card);
+      });
+    }
+
+    function flipCard(e) {
+      const card = e.currentTarget;
+      if (card.classList.contains('flipped') || card.classList.contains('matched') || flipped.length === 2) return;
+      card.textContent = card.dataset.letter;
+      card.classList.add('flipped');
+      flipped.push(card);
+      if (flipped.length === 2) checkMatch();
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flipped;
+      if (card1.dataset.letter === card2.dataset.letter) {
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        matched++;
+        if (matched === 10) {
+          clearInterval(timer);
+          wins++;
+          winsDisplay.textContent = `ניצחונות: ${wins}`;
+          setTimeout(startGame, 2000);
+        }
+      } else {
+        setTimeout(() => {
+          card1.textContent = '';
+          card2.textContent = '';
+          card1.classList.remove('flipped');
+          card2.classList.remove('flipped');
+        }, 1000);
+      }
+      flipped = [];
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timeLeft = 60;
+      timerDisplay.textContent = `זמן: ${timeLeft}`;
+      timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `זמן: ${timeLeft}`;
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          alert('הזמן נגמר!');
+          startGame();
+        }
+      }, 1000);
+    }
+
+    function startGame() {
+      cards = [...hebrewLetters, ...hebrewLetters].sort(() => Math.random() - 0.5);
+      flipped = [];
+      matched = 0;
+      createBoard();
+      startTimer();
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
